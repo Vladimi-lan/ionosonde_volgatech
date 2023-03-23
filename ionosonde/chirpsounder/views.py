@@ -1,6 +1,7 @@
 from django.shortcuts import get_list_or_404, get_object_or_404
 from rest_framework import generics
 from rest_framework import status
+from rest_framework import viewsets
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -15,7 +16,7 @@ class APIConfig(APIView):
         configs = get_list_or_404(ConfigSettings)
         serializer = ConfigSettingsSerializer(configs, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
-    
+
     def post(self, request):
         serializer = ConfigSettingsSerializer(data=request.data)
         if serializer.is_valid():
@@ -67,6 +68,11 @@ def api_swtracks(request):
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 
+class SwtracksViewSet(viewsets.ModelViewSet):
+    queryset = Swtracks.objects.all()
+    serializer_class = SwtracksSerializer
+
+
 @api_view(['GET', 'PUT', 'PATCH', 'DELETE'])
 def api_swtracks_detail(request, pk):
     swtrack = get_object_or_404(Swtracks, id=pk)
@@ -84,19 +90,6 @@ def api_swtracks_detail(request, pk):
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-@api_view(['GET', 'POST'])
-def api_schedule(request):
-    if request.method == 'POST':
-        serializer = ScheduleSettingsSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    schedule_list = get_list_or_404(ScheduleSettings)
-    serializer = ScheduleSettingsSerializer(schedule_list, many=True)
-    return Response(serializer.data, status=status.HTTP_200_OK)
-
-
 class ScheduleList(generics.ListCreateAPIView):
     queryset = get_list_or_404(ScheduleSettings)
     serializer_class = ScheduleSettingsSerializer
@@ -105,20 +98,3 @@ class ScheduleList(generics.ListCreateAPIView):
 class ScheduleDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = ScheduleSettings.objects.all()
     serializer_class = ScheduleSettingsSerializer
-
-
-@api_view(['GET', 'PUT', 'PATCH', 'DELETE'])
-def api_schedule_detail(request, pk):
-    schedule = get_object_or_404(ScheduleSettings, id=pk)
-    if request.method == 'PUT' or request.method == 'PATCH':
-        serializer = ScheduleSettingsSerializer(schedule, data=request.data,
-                                                partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    if request.method == 'DELETE':
-        schedule.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
-    serializer = ScheduleSettingsSerializer(schedule)
-    return Response(serializer.data, status=status.HTTP_200_OK)

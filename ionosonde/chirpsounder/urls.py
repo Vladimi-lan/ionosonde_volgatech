@@ -3,20 +3,19 @@ from rest_framework.routers import DefaultRouter
 
 from .views import (APIConfig, APIConfigDetail,
                     ScheduleList, ScheduleDetail,
-                    api_swtracks, api_swtracks_detail)
+                    SwtracksViewSet)
 
 
 app_name = 'chirpsounder'
 
-# router = DefaultRouter()
+router = DefaultRouter()
 
-# router.register()
+router.register('swtracks', SwtracksViewSet)
 
 urlpatterns = [
     path('config/', APIConfig.as_view()),
     path('config/<int:pk>/', APIConfigDetail.as_view()),
     path('schedule/', ScheduleList.as_view()),
     path('schedule/<int:pk>/', ScheduleDetail.as_view()),
-    path('swtracks/', api_swtracks),
-    path('swtracks/<int:pk>/', api_swtracks_detail),
+    path('', include(router.urls)),
 ]
