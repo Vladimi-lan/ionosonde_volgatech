@@ -1,42 +1,57 @@
 from django.shortcuts import get_list_or_404, get_object_or_404
+from rest_framework import generics
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from .models import ConfigSettings, Swtracks, ScheduleSettings
 from .serializers import (ConfigSettingsSerializer, SwtracksSerializer,
                           ScheduleSettingsSerializer)
 
 
-
-@api_view(['GET', 'POST'])
-def api_config(request):
-    if request.method == 'POST':
+class APIConfig(APIView):
+    def get(self, request):
+        configs = get_list_or_404(ConfigSettings)
+        serializer = ConfigSettingsSerializer(configs, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    def post(self, request):
         serializer = ConfigSettingsSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    configs = get_list_or_404(ConfigSettings)
-    serializer = ConfigSettingsSerializer(configs, many=True)
-    return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-@api_view(['GET', 'PUT', 'PATCH', 'DELETE'])
-def api_config_detail(request, pk):
-    config = get_object_or_404(ConfigSettings, id=pk)
-    if request.method == 'PUT' or request.method == 'PATCH':
+class APIConfigDetail(APIView):
+    def get(self, request, pk):
+        config = get_object_or_404(ConfigSettings, id=pk)
+        serializer = ConfigSettingsSerializer(config)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def put(self, request, pk):
+        config = get_object_or_404(ConfigSettings, id=pk)
         serializer = ConfigSettingsSerializer(config, data=request.data,
                                               partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    elif request.method == 'DELETE':
+
+    def patch(self, request, pk):
+        config = get_object_or_404(ConfigSettings, id=pk)
+        serializer = ConfigSettingsSerializer(config, data=request.data,
+                                              partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        config = get_object_or_404(ConfigSettings, id=pk)
         config.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
-    serializer = ConfigSettingsSerializer(config)
-    return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 @api_view(['GET', 'POST'])
@@ -80,6 +95,16 @@ def api_schedule(request):
     schedule_list = get_list_or_404(ScheduleSettings)
     serializer = ScheduleSettingsSerializer(schedule_list, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class ScheduleList(generics.ListCreateAPIView):
+    queryset = get_list_or_404(ScheduleSettings)
+    serializer_class = ScheduleSettingsSerializer
+
+
+class ScheduleDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = ScheduleSettings.objects.all()
+    serializer_class = ScheduleSettingsSerializer
 
 
 @api_view(['GET', 'PUT', 'PATCH', 'DELETE'])
