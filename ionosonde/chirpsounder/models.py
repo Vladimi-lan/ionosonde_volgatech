@@ -5,8 +5,6 @@ from django.db import models
 from users.models import CustomUser
 
 
-User = get_user_model()
-
 # class SingletonModel(models.Model):
 #     class Meta:
 #         abstract = True
@@ -62,7 +60,7 @@ class ConfigSettings(models.Model):
     decimation = models.IntegerField()
     fft_size = models.IntegerField()
     author = models.ForeignKey(
-        User,
+        CustomUser,
         on_delete=models.CASCADE,
         related_name='recent_author',
         verbose_name='Последний создатель файла настроек',
@@ -73,7 +71,7 @@ class ConfigSettings(models.Model):
 class Swtracks(models.Model):
 
     author = models.ForeignKey(
-        User,
+        CustomUser,
         on_delete=models.CASCADE,
         related_name='swtracks',
         verbose_name='Автор'
@@ -135,6 +133,9 @@ class Swtracks(models.Model):
     class Meta:
         ordering = ['-id']
 
+    def __str__(self) -> str:
+        return self.name
+
 
 class ScheduleSettings(models.Model):
 
@@ -156,9 +157,12 @@ class ScheduleSettings(models.Model):
         related_name='schedule'
     )
     owner = models.ForeignKey(
-        User,
+        CustomUser,
         on_delete=models.CASCADE,
         related_name='schedule',
         verbose_name='Создатель расписания',
         help_text='Создатель расписания'
     )
+
+    def __str__(self) -> str:
+        return self.name
