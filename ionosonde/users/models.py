@@ -5,7 +5,6 @@ from django.db import models
 class CustomUserManager(BaseUserManager):
     def create_user(
             self,
-            username: str,
             first_name: str,
             last_name: str,
             email: str,
@@ -21,7 +20,6 @@ class CustomUserManager(BaseUserManager):
 
         user = self.model(
             email=self.normalize_email(email),
-            username=username,
             first_name=first_name,
             last_name=last_name,
         )
@@ -33,10 +31,9 @@ class CustomUserManager(BaseUserManager):
         return user
 
     def create_superuser(
-            self, username: str, first_name: str, last_name: str, email: str,
+            self, first_name: str, last_name: str, email: str,
             password: str):
         user = self.create_user(
-            username=username,
             first_name=first_name,
             last_name=last_name,
             email=email,
@@ -49,16 +46,6 @@ class CustomUserManager(BaseUserManager):
 
 
 class CustomUser(AbstractUser):
-    username = models.CharField(
-        verbose_name='Login',
-        max_length=150,
-        unique=True
-    )
-    email = models.EmailField(
-        verbose_name='Email',
-        max_length=254,
-        unique=True
-    )
     first_name = models.CharField(
         verbose_name='First Name',
         max_length=255
@@ -67,10 +54,18 @@ class CustomUser(AbstractUser):
         verbose_name='Last Name',
         max_length=255
     )
+    email = models.EmailField(
+        verbose_name='Email',
+        max_length=255,
+        unique=True
+    )
+    password = models.CharField(max_length=255)
+    username = None
 
     objects = CustomUserManager()
 
-    REQUIRED_FIELDS = ['first_name', 'last_name', 'email']
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['first_name', 'last_name']
 
     class Meta:
         ordering = ['id']

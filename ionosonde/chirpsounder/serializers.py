@@ -6,25 +6,11 @@ from users.models import CustomUser
 
 
 class CustomUserSerializer(UserSerializer):
-    password = serializers.CharField(write_only=True)
 
     class Meta:
         model = CustomUser
-        fields = ('email', 'id', 'username', 'first_name',
-                  'last_name', 'password')
-
-    def create(self, validated_data):
-        user = super().create(**validated_data)
-        user.set_password(validated_data['password'])
-        user.first_name = validated_data.get('first_name')
-        user.last_name = validated_data.get('last_name')
-        user.save()
-        return user
-
-    def to_representation(self, instance):
-        result = super().to_representation(instance)
-        result.pop('password', None)
-        return result
+        fields = ('email', 'id', 'first_name',
+                  'last_name')
 
 
 class ConfigSettingsSerializer(serializers.ModelSerializer):
