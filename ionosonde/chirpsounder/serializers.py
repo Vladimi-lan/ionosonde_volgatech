@@ -15,7 +15,7 @@ class CustomUserSerializer(UserSerializer):
 
 class ConfigSettingsSerializer(serializers.ModelSerializer):
 
-    author = serializers.StringRelatedField(read_only=True)
+    author = CustomUserSerializer(read_only=True)
 
     class Meta:
         model = ConfigSettings
@@ -47,11 +47,18 @@ class ScheduleSettingsSerializer(serializers.ModelSerializer):
         model = ScheduleSettings
         fields = ('name', 'start_date_time', 'stop_date_time',
                   'swtrack', 'owner')
-    
+
     def validate(self, data):
         """
-        Check that start is before stop.
+        Check that start is before stop and not within another session.
         """
         if data['start_date_time'] > data['stop_date_time']:
             raise serializers.ValidationError('Stop must occur after start')
+        elif ScheduleSettings.objects.filter(
+            start_date_time__lte=data['start_date_time'],
+            stop_date_time__gte=data['start_date_time']
+        ):
+            raise serializers.ValidationError("You can't start a session "
+                                              "within another session "
+                                              "being run")
         return data
