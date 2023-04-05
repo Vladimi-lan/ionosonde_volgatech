@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from djoser.serializers import UserSerializer
+from django.db.models import Q
 
 from .models import ConfigSettings, Swtracks, ScheduleSettings
 from users.models import CustomUser
@@ -41,7 +42,7 @@ class SwtracksSerializer(serializers.ModelSerializer):
 
 class ScheduleSettingsSerializer(serializers.ModelSerializer):
 
-    owner = serializers.StringRelatedField(read_only=True)
+    owner = CustomUserSerializer(read_only=True)
 
     class Meta:
         model = ScheduleSettings
@@ -50,15 +51,20 @@ class ScheduleSettingsSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         """
-        Check that start is before stop and not within another session.
+        Check that start is before stop and for overlapping session.
         """
         if data['start_date_time'] > data['stop_date_time']:
             raise serializers.ValidationError('Stop must occur after start')
-        elif ScheduleSettings.objects.filter(
-            start_date_time__lte=data['start_date_time'],
-            stop_date_time__gte=data['start_date_time']
-        ):
-            raise serializers.ValidationError("You can't start a session "
-                                              "within another session "
-                                              "being run")
+        overlapping_sessions = ScheduleSettings.objects.filter(
+            Q(start_date_time__range=(data['start_date_time'],
+                                      data['stop_date_time'])) |
+            Q(stop_date_time__range=(data['start_date_time'],
+                                     data['stop_date_time'])) |
+            Q(start_date_time__lte=data['start_date_time'],
+              stop_date_time__gte=data['stop_date_time'])
+        )
+        if overlapping_sessions.exists():
+            raise serializers.ValidationError("You can't start or finish "
+                                              "a session within another "
+                                              "session being run.")
         return data

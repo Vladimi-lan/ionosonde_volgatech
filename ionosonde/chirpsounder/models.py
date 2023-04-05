@@ -1,27 +1,10 @@
 from django.core.validators import MinLengthValidator
-from django.contrib.auth import get_user_model
 from django.db import models
 
 from users.models import CustomUser
 
 
-# class SingletonModel(models.Model):
-#     class Meta:
-#         abstract = True
- 
-#     def save(self, *args, **kwargs):
-#         self.__class__.objects.exclude(id=self.id).delete()
-#         super(SingletonModel, self).save(*args, **kwargs)
- 
-#     @classmethod
-#     def load(cls):
-#         try:
-#             return cls.objects.get()
-#         except cls.DoesNotExist:
-#             return cls()
-
-
-class ConfigSettings(models.Model): 
+class ConfigSettings(models.Model):
     programm_path = models.CharField(
         verbose_name='путь до программы chirp.py',
         max_length=60,
@@ -86,7 +69,8 @@ class Swtracks(models.Model):
         validators=[
             MinLengthValidator(
                 2,
-                message='Убедитесь, что длина названия содержит хотя бы 2 символа.'
+                message='Убедитесь, что длина названия содержит '
+                        'хотя бы 2 символа.'
             )
         ]
     )
@@ -96,7 +80,8 @@ class Swtracks(models.Model):
         validators=[
             MinLengthValidator(
                 2,
-                message='Убедитесь, что длина названия содержит хотя бы 2 символа.'
+                message='Убедитесь, что длина названия содержит '
+                        'хотя бы 2 символа.'
             )
         ]
     )
