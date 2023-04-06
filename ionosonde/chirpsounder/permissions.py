@@ -7,4 +7,5 @@ class IsOwnerOrReadOnly(permissions.BasePermission):
         if (request.method in permissions.SAFE_METHODS
            and request.user.is_authenticated):
             return True
-        return obj.author == request.user and request.user.is_staff
+        return ((obj.author == request.user and request.user.is_staff)
+                or request.user.is_superuser)
