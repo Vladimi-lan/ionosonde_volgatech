@@ -141,7 +141,7 @@ class ScheduleSettings(models.Model):
         on_delete=models.CASCADE,
         related_name='schedule'
     )
-    owner = models.ForeignKey(
+    author = models.ForeignKey(
         CustomUser,
         on_delete=models.CASCADE,
         related_name='schedule',

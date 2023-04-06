@@ -11,7 +11,7 @@ class CustomUserSerializer(UserSerializer):
     class Meta:
         model = CustomUser
         fields = ('email', 'id', 'first_name',
-                  'last_name')
+                  'last_name', 'is_staff')
 
 
 class ConfigSettingsSerializer(serializers.ModelSerializer):
@@ -42,26 +42,35 @@ class SwtracksSerializer(serializers.ModelSerializer):
 
 class ScheduleSettingsSerializer(serializers.ModelSerializer):
 
-    owner = CustomUserSerializer(read_only=True)
+    author = CustomUserSerializer(read_only=True)
 
     class Meta:
         model = ScheduleSettings
         fields = ('name', 'start_date_time', 'stop_date_time',
-                  'swtrack', 'owner')
+                  'swtrack', 'author')
 
     def validate(self, data):
         """
-        Check that start is before stop and for overlapping session.
+        Check for overlapping sessions and that start is before stop.
         """
-        if data['start_date_time'] > data['stop_date_time']:
+        start_date_time = data.get(
+            'start_date_time',
+            self.instance.start_date_time
+        )
+        stop_date_time = data.get(
+            'stop_date_time',
+            self.instance.stop_date_time
+        )
+        if start_date_time > stop_date_time:
             raise serializers.ValidationError('Stop must occur after start')
-        overlapping_sessions = ScheduleSettings.objects.filter(
-            Q(start_date_time__range=(data['start_date_time'],
-                                      data['stop_date_time'])) |
-            Q(stop_date_time__range=(data['start_date_time'],
-                                     data['stop_date_time'])) |
-            Q(start_date_time__lte=data['start_date_time'],
-              stop_date_time__gte=data['stop_date_time'])
+        overlapping_sessions = ScheduleSettings.objects.exclude(
+            id=self.instance.id).filter(
+            Q(start_date_time__range=(start_date_time,
+                                      stop_date_time)) |
+            Q(stop_date_time__range=(start_date_time,
+                                     stop_date_time)) |
+            Q(start_date_time__lte=start_date_time,
+              stop_date_time__gte=stop_date_time)
         )
         if overlapping_sessions.exists():
             raise serializers.ValidationError("You can't start or finish "
