@@ -5,6 +5,9 @@ from users.models import CustomUser
 
 
 class ConfigSettings(models.Model):
+    #CHOICES(sample_rate): 3125, 6250, 12500, 25000
+    #CHOICES(fft_size): 512 .. 65536
+
     programm_path = models.CharField(
         verbose_name='путь до программы chirp.py',
         max_length=60,
@@ -38,8 +41,8 @@ class ConfigSettings(models.Model):
     )
     sample_rate = models.IntegerField()
     filter = models.BooleanField()
-    filter_band = models.IntegerField()
-    sample_count = models.IntegerField()
+    filter_band = models.IntegerField() #Default=8192
+    sample_count = models.IntegerField() #Default=30000
     decimation = models.IntegerField()
     fft_size = models.IntegerField()
     author = models.ForeignKey(

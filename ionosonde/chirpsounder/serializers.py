@@ -53,18 +53,22 @@ class ScheduleSettingsSerializer(serializers.ModelSerializer):
         """
         Check for overlapping sessions and that start is before stop.
         """
-        start_date_time = data.get(
-            'start_date_time',
-            self.instance.start_date_time
-        )
-        stop_date_time = data.get(
-            'stop_date_time',
-            self.instance.stop_date_time
-        )
+        if self.instance:
+            start_date_time = data.get(
+                'start_date_time',
+                self.instance.start_date_time,
+            )
+            stop_date_time = data.get(
+                'stop_date_time',
+                self.instance.stop_date_time
+            )
+        else:
+            start_date_time = data.get('start_date_time')
+            stop_date_time = data.get('stop_date_time')
         if start_date_time > stop_date_time:
             raise serializers.ValidationError('Stop must occur after start')
         overlapping_sessions = ScheduleSettings.objects.exclude(
-            id=self.instance.id).filter(
+            id=self.instance.id if self.instance else None).filter(
             Q(start_date_time__range=(start_date_time,
                                       stop_date_time)) |
             Q(stop_date_time__range=(start_date_time,
